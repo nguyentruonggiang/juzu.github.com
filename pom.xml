@@ -20,17 +20,17 @@
   <dependencies>
     <dependency>
       <groupId>org.juzu</groupId>
-      <artifactId>juzu-reference-guide</artifactId>
+      <artifactId>juzu-doc-reference-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.4.5-SNAPSHOT</version>
+      <version>0.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
-      <artifactId>juzu-tutorial-guide</artifactId>
+      <artifactId>juzu-doc-tutorial-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.4.5-SNAPSHOT</version>
+      <version>0.5.0</version>
     </dependency>
   </dependencies>
 
@@ -48,8 +48,16 @@
                 <property name="reference" value="${project.build.directory}/reference/"/>
                 <property name="site" value="${project.build.directory}/classes/"/>
 
+                <!-- Unzip Wikbook -->
+                <unzip src="${org.juzu:juzu-doc-tutorial-guide:zip:html}" dest="${tutorial}"/>
+                <unzip src="${org.juzu:juzu-doc-reference-guide:zip:html}" dest="${reference}"/>
+
+                <!-- Common Wikbook resources -->
+                <copy todir="${site}/js">
+                  <fileset dir="${reference}/js/bootstrap" includes="google-code-prettify/**"/>
+                </copy>
+
                 <!-- Reference guide -->
-                <unzip src="${org.juzu:juzu-reference-guide:zip:html}" dest="${reference}"/>
                 <copy file="${reference}/index.html" tofile="${site}/reference.html"/>
                 <copy todir="${site}/css">
                   <fileset dir="${reference}/css">
@@ -57,16 +65,15 @@
                     <include name="bootstrap/prettify.css"/>
                   </fileset>
                 </copy>
-                <copy todir="${site}/js">
-                  <fileset dir="${reference}/js/bootstrap" includes="google-code-prettify/**"/>
-                </copy>
                 <copy todir="${site}/images">
                   <fileset dir="${reference}/images"/>
                 </copy>
 
                 <!-- Tutorial guide -->
-                <unzip src="${org.juzu:juzu-tutorial-guide:zip:html}" dest="${tutorial}"/>
                 <copy file="${tutorial}/index.html" tofile="${site}/tutorial.html"/>
+                <copy todir="${site}/images">
+                  <fileset dir="${tutorial}/images"/>
+                </copy>
               </target>
             </configuration>
             <goals>
