@@ -23,20 +23,20 @@
       <artifactId>juzu-doc-reference-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.5.1</version>
+      <version>0.6.0-beta5</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-reference-api</artifactId>
       <classifier>javadoc</classifier>
-      <version>0.5.1</version>
+      <version>0.6.0-beta5</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-tutorial-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.5.1</version>
+      <version>0.6.0-beta5</version>
     </dependency>
   </dependencies>
 
