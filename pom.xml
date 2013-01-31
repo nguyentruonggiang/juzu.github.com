@@ -70,6 +70,7 @@
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
+        <version>0.7</version>
         <configuration>
           <message>Deploy documentation for ${project.version}</message>
           <outputDirectory>${project.build.directory}/classes</outputDirectory>
