@@ -23,20 +23,20 @@
       <artifactId>juzu-doc-reference-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.6.0-beta5</version>
+      <version>0.6.0-beta13</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-reference-api</artifactId>
       <classifier>javadoc</classifier>
-      <version>0.6.0-beta5</version>
+      <version>0.6.0-beta13</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-tutorial-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.6.0-beta5</version>
+      <version>0.6.0-beta13</version>
     </dependency>
   </dependencies>
 
@@ -50,43 +50,13 @@
             <phase>generate-resources</phase>
             <configuration>
               <target>
-                <property name="tutorial" value="${project.build.directory}/tutorial/"/>
-                <property name="reference" value="${project.build.directory}/reference/"/>
-                <property name="javadoc" value="${project.build.directory}/javadoc/"/>
                 <property name="site" value="${project.build.directory}/classes/"/>
-
-                <!-- Unzip dependencies -->
+                <property name="tutorial" value="${site}/tutorial/"/>
+                <property name="reference" value="${site}/reference/"/>
+                <property name="javadoc" value="${site}/javadoc/"/>
                 <unzip src="${org.juzu:juzu-doc-tutorial-guide:zip:html}" dest="${tutorial}"/>
                 <unzip src="${org.juzu:juzu-doc-reference-guide:zip:html}" dest="${reference}"/>
                 <unzip src="${org.juzu:juzu-doc-reference-api:jar:javadoc}" dest="${javadoc}"/>
-
-                <!-- Common Wikbook resources -->
-                <copy todir="${site}/js">
-                  <fileset dir="${reference}/js/bootstrap" includes="google-code-prettify/**"/>
-                </copy>
-
-                <!-- Reference guide -->
-                <copy file="${reference}/index.html" tofile="${site}/reference.html"/>
-                <copy todir="${site}/css">
-                  <fileset dir="${reference}/css">
-                    <include name="wikbook.css"/>
-                    <include name="bootstrap/prettify.css"/>
-                  </fileset>
-                </copy>
-                <copy todir="${site}/images">
-                  <fileset dir="${reference}/images"/>
-                </copy>
-
-                <!-- Tutorial guide -->
-                <copy file="${tutorial}/index.html" tofile="${site}/tutorial.html"/>
-                <copy todir="${site}/images">
-                  <fileset dir="${tutorial}/images"/>
-                </copy>
-
-                <!-- Tutorial guide -->
-                <copy todir="${site}/javadoc">
-                  <fileset dir="${javadoc}"/>
-                </copy>
               </target>
             </configuration>
             <goals>
