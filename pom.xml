@@ -11,6 +11,10 @@
   <name>Juzu Website</name>
   <description>The website</description>
 
+  <properties>
+    <juzu.version>0.6.0-beta15</juzu.version>
+  </properties>
+
   <scm>
     <connection>scm:git:git://github.com/juzu/juzu.github.com.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/juzu/juzu.github.com.git</developerConnection>
@@ -23,24 +27,40 @@
       <artifactId>juzu-doc-reference-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.6.0-beta14</version>
+      <version>${juzu.version}</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-reference-api</artifactId>
       <classifier>javadoc</classifier>
-      <version>0.6.0-beta14</version>
+      <version>${juzu.version}</version>
     </dependency>
     <dependency>
       <groupId>org.juzu</groupId>
       <artifactId>juzu-doc-tutorial-guide</artifactId>
       <classifier>html</classifier>
       <type>zip</type>
-      <version>0.6.0-beta14</version>
+      <version>${juzu.version}</version>
     </dependency>
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>index.html</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>index.html</exclude>
+        </excludes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
