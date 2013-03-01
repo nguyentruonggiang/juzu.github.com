@@ -12,7 +12,7 @@
   <description>The website</description>
 
   <properties>
-    <juzu.version>0.6.0-beta16</juzu.version>
+    <juzu.version>0.6.0-beta17</juzu.version>
   </properties>
 
   <scm>
