@@ -107,7 +107,7 @@
           </div>
           <div class="span4">
             <h3>Use</h3>
-            Latest <a href="http://search.maven.org/remotecontent?filepath=org/juzu/juzu-distrib/0.6.0-beta13/juzu-distrib-0.6.0-beta13.zip">0.6.0-beta13</a>.<br/>
+            Latest <a href="http://search.maven.org/remotecontent?filepath=org/juzu/juzu-distrib/${juzu.version}/juzu-distrib-${juzu.version}.zip">${juzu.version}</a>.<br/>
             Snapshot <a href="https://repository-juzu.forge.cloudbees.com/snapshot/">repository</a>.<br/>
             </p>
           </div>
@@ -241,7 +241,7 @@ PortletPreferences prefs;
         <pre>mvn archetype:generate \
   -DarchetypeGroupId=org.juzu \
   -DarchetypeArtifactId=juzu-archetype \
-  -DarchetypeVersion=0.6.0-beta5 \
+  -DarchetypeVersion=${juzu.version} \
   -DgroupId=&lt;my.groupid&gt; \
   -DartifactId=&lt;my-artifactId&gt;</pre>
 
@@ -323,18 +323,27 @@ public static URLBuilder showProduct(String productId) { ... }
           <small>Extensible taglib</small>
           <small>Application import</small>
           <small>Controller inheritance</small>
-          <small>Bean validation support (JSR-303)</small>
         </blockquote>
 
         <blockquote><p>...</p></blockquote>
 
         <blockquote>
-          <p><strong>Next 0.6</strong></p>
-          <small>Standalone mode (plain servlet support)</small>
-          <small>Portlet Eventing Support</small>
+          <p><strong>Next 0.7</strong></p>
+          <small>Asynchronous servlet</small>
+          <small>Bean validation support (JSR-303)</small>
+          <small>Vert.x support</small>
         </blockquote>
 
-        <blockquote class="pull-right">
+        <blockquote class="pull-right" style="clear:both">
+          <p class="done">0.6</p>
+          <small>Servlet mode</small>
+          <small>Portlet Eventing Support</small>
+          <small>Less plugin</small>
+          <small>File upload plugin</small>
+          <small>Arquillian integration</small>
+        </blockquote>
+
+        <blockquote class="pull-right" style="clear:both">
           <p class="done">0.5</p>
           <small>Form bean</small>
           <small>Reference guide</small>
@@ -347,7 +356,7 @@ public static URLBuilder showProduct(String productId) { ... }
           <small>Portlet Plugin</small>
         </blockquote>
 
-        <blockquote class="pull-right">
+        <blockquote class="pull-right" style="clear:both">
           <p class="done">0.4.4</p>
           <small>change how a builder is obtained from a template using the word "with()"</small>
           <small>improve controller response creation allowing better control for ajax serving and control flow</small>
