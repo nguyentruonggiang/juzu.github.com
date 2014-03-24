@@ -876,39 +876,7 @@ modifications to a subset of the Less files and integrate them in our applicatio
 <div class="listingblock">
 <div class="title">The necessary Bootstrap less files</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="comment">/*!
- * Bootstrap v2.0.3
- *
- * Copyright 2012 Twitter, Inc
- * Licensed under the Apache License v2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Designed and built with all the love in the world @twitter by @mdo and @fat.
- */</span>
-
-<span class="comment">// CSS Reset</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">reset.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Core variables and mixins</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">variables.less</span><span class="delimiter">&quot;</span></span>; <span class="comment">// Modify this for custom colors, font-sizes, etc</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">mixins.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Grid system and page structure</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">scaffolding.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Base CSS</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">type.less</span><span class="delimiter">&quot;</span></span>;
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">forms.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Components: common</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">component-animations.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Components: Buttons &amp; Alerts</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">buttons.less</span><span class="delimiter">&quot;</span></span>;
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">button-groups.less</span><span class="delimiter">&quot;</span></span>;
-
-<span class="comment">// Components: Misc</span>
-<span class="annotation">@import</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">accordion.less</span><span class="delimiter">&quot;</span></span>;</code></pre>
+<pre class="CodeRay"><code class="java language-java"></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -955,22 +923,29 @@ the compilation phase:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Our first step is to create the <code>examples.tutorial.assets</code> package, we copy the Bootstrap Less files into this package and
+<p>Our first step is to create the <code>examples.tutorial.weather7.assets</code> package, we copy the Bootstrap Less files into this package and
 annotate the <code>examples.tutorial</code> package with the <code>@Less</code> annotation to trigger the compilation of the stylesheet
  in the <code>assets</code> package:</p>
 </div>
 <div class="listingblock">
 
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Less</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap.less</span><span class="delimiter">&quot;</span></span>, minify = <span class="predefined-constant">true</span>)
-<span class="keyword">package</span> <span class="namespace">examples.tutorial</span>;
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
+<span class="annotation">@Portlet</span>
+<span class="annotation">@Servlet</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/weather7/*</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@Less</span>(<span class="annotation">@Stylesheet</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap.less</span><span class="delimiter">&quot;</span></span>))
+<span class="keyword">package</span> <span class="namespace">examples.tutorial.weather7</span>;
 
-<span class="keyword">import</span> <span class="include">juzu.plugin.less.Less</span>;</code></pre>
+<span class="keyword">import</span> <span class="include">juzu.Application</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.asset.Asset</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.less4j.Less</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.portlet.Portlet</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.servlet.Servlet</span>;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This annotation triggers the compilation of the <code>bootstrap.less</code> in the <code>assets</code> package, the <code>minified</code> parameter
-instruct Less to minify the resulting css.</p>
+<p>This annotation triggers the compilation of the <code>bootstrap.less</code> in the <code>assets</code> package, it also declares
+the resulting css file as an asset.</p>
 </div>
 
 </div>
@@ -985,30 +960,23 @@ by an application. It works both for stylesheets and javascript, in this section
 <div class="title">Declaring and serving Bootstrap CSS in our application</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
-<span class="annotation">@Assets</span>(<span class="annotation">@Asset</span>(
-  value = <span class="string"><span class="delimiter">&quot;</span><span class="content">/examples/tutorial/assets/bootstrap.css</span><span class="delimiter">&quot;</span></span>,
-  location = AssetLocation.CLASSPATH)
-)
-<span class="annotation">@WithAssets</span>
-<span class="keyword">package</span> <span class="namespace">examples.tutorial.weather7</span>;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The usage is fairly straightforward with the <code>@Assets</code> and <code>WithAssets</code> annotations:</p>
-</div>
-<div class="ulist">
+<span class="annotation">@Application</span>
+<span class="annotation">@Portlet</span>
+<span class="annotation">@Servlet</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/weather7/*</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@Less</span>(<span class="annotation">@Stylesheet</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap.less</span><span class="delimiter">&quot;</span></span>))
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>)
+<span class="keyword">package</span> <span class="namespace">examples.tutorial.weather7</span>;
 
-<ul>
-<li>
-<p>The <code>@Assets</code> annotation declares the application assets</p>
-</li>
-<li>
-<p>The <code>@WithAssets</code> annotation declares the application to serve during a request</p>
-</li>
-</ul>
+<span class="keyword">import</span> <span class="include">juzu.Application</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.asset.Assets</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.less4j.Less</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.portlet.Portlet</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.servlet.Servlet</span>;</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>We configure the <code>location</code> parameter to be <code>CLASSPATH</code> because the Less plugin created it there.</p>
+<p>The <code>@Assets</code> annotation declares the application to serve during a request, by default we server all assets
+with the value <code>*</code>, in our case we only have the single bootstrap stylesheet.</p>
 </div>
 
 </div>
@@ -1112,64 +1080,31 @@ retrieve the markup that will be inserted.</p>
 <div class="sect2">
 <h3 id="_adding_scripts"><a class="anchor" href="#_adding_scripts"></a>Adding scripts</h3>
 <div class="paragraph">
-<p>The Asset plugin was introduced in the previous section to handle the serving of the Bootstrap stylesheets. The <code>@Asset</code>
+<p>The Asset plugin was introduced in the previous section to handle the serving of the Bootstrap stylesheets. The <code>@Script</code>
 annotation can be used also for embedding scripts, but it provides more control about the script, in particular
 a dependency mechanism to control the order of scripts that we will use: indeed jQuery plugins have to be loaded after the
 jQuery library is loaded.</p>
 </div>
 <div class="paragraph">
-<p>We extend the <code>@Asset</code> annotation to add our scripts:</p>
+<p>We extend the <code>@Scripts</code> and <code>@Stylesheets</code> annotation to add our scripts:</p>
 </div>
 <div class="listingblock">
 
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>({
-  <span class="annotation">@Asset</span>(
-    id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="comment">// <i class="conum">1</i></span>
-    value = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>,
-    location = AssetLocation.CLASSPATH),
-  <span class="annotation">@Asset</span>(
-    id = <span class="string"><span class="delimiter">&quot;</span><span class="content">transition</span><span class="delimiter">&quot;</span></span>,
-    value = <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap-transition.js</span><span class="delimiter">&quot;</span></span>, <span class="comment">// <i class="conum">2</i></span>
-    location = AssetLocation.CLASSPATH,
-    depends = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>), <span class="comment">// <i class="conum">1</i></span>
-  <span class="annotation">@Asset</span>(
-    id = <span class="string"><span class="delimiter">&quot;</span><span class="content">collapse</span><span class="delimiter">&quot;</span></span>,
-    value = <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap-collapse.js</span><span class="delimiter">&quot;</span></span>,
-    location = AssetLocation.CLASSPATH,
-    depends = {
-      <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="comment">// 1</span>
-      <span class="string"><span class="delimiter">&quot;</span><span class="content">transition</span><span class="delimiter">&quot;</span></span>}), <span class="comment">// <i class="conum">2</i></span>
-  <span class="annotation">@Asset</span>(
-    value = <span class="string"><span class="delimiter">&quot;</span><span class="content">weather.js</span><span class="delimiter">&quot;</span></span>,
-    location = AssetLocation.CLASSPATH,
-    depends = {
-      <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>,  <span class="comment">// <i class="conum">1</i></span>
-      <span class="string"><span class="delimiter">&quot;</span><span class="content">collapse</span><span class="delimiter">&quot;</span></span>}), <span class="comment">// <i class="conum">3</i></span>
-  <span class="annotation">@Asset</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">/examples/tutorial/assets/bootstrap.css</span><span class="delimiter">&quot;</span></span>, location = AssetLocation.CLASSPATH)
-})
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
+<span class="annotation">@Scripts</span>({
+    <span class="annotation">@Script</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>),
+    <span class="annotation">@Script</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">transition</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap-transition.js</span><span class="delimiter">&quot;</span></span>, depends = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>),
+    <span class="annotation">@Script</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">collapse</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap-collapse.js</span><span class="delimiter">&quot;</span></span>, depends = {<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">transition</span><span class="delimiter">&quot;</span></span>}),
+    <span class="annotation">@Script</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">weather.js</span><span class="delimiter">&quot;</span></span>, depends = {<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">collapse</span><span class="delimiter">&quot;</span></span>})
+  })
+<span class="annotation">@Stylesheets</span>(<span class="annotation">@Stylesheet</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/examples/tutorial/weather7/assets/bootstrap.css</span><span class="delimiter">&quot;</span></span>))
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>)
 <span class="keyword">package</span> <span class="namespace">examples.tutorial.weather8</span>;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-
-<table>
-<tr>
-<td><i class="conum">1</i></td>
-<td>All other scripts than jQuery depends on jQuery</td>
-</tr>
-<tr>
-<td><i class="conum">2</i></td>
-<td>The <em>collapse</em> jQuery plugin depends on the <em>transition</em> script</td>
-</tr>
-<tr>
-<td><i class="conum">3</i></td>
-<td>Our <em>weather</em> script depends also on the jQuery <em>collapse</em> plugin</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>The declaration is straightforward, any <code>@Asset</code> annotation may configure</p>
+<p>The declaration is straightforward, any <code>@Script</code> or <code>@Stylesheet</code> annotation may configure</p>
 </div>
 <div class="ulist">
 
@@ -1187,6 +1122,20 @@ jQuery library is loaded.</p>
 <p>an optional <code>depends</code> that declares the ids a script depends on</p>
 </li>
 </ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-note" title="Note"></i>
+</td>
+<td class="content">
+
+we reuse the bootstrap stylesheet generated by the <em>weather7</em> application by using an absolute path
+ for this asset.
+</td>
+</tr>
+</table>
 </div>
 
 </div>
@@ -1444,13 +1393,13 @@ testing an application with those tools:</p>
 &lt;dependency&gt;
   &lt;groupId&gt;org.juzu&lt;/groupId&gt;
   &lt;artifactId&gt;juzu-depchain-arquillian&lt;/artifactId&gt;
-  &lt;version&gt;0.7.0&lt;/version&gt;
+  &lt;version&gt;0.8.0&lt;/version&gt;
   &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
   &lt;groupId&gt;org.juzu&lt;/groupId&gt;
   &lt;artifactId&gt;juzu-depchain-arquillian-tomcat7&lt;/artifactId&gt;
-  &lt;version&gt;0.7.0&lt;/version&gt;
+  &lt;version&gt;0.8.0&lt;/version&gt;
   &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -1586,7 +1535,7 @@ can be found in the package you downloaded in the <em>booking</em> directory.</p
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-11-12 11:11:27 CET
+Last updated 2014-03-24 11:52:08 CET
 </div>
 </div>
 </body>

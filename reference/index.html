@@ -307,8 +307,8 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 <li><a href="#_custom_tags">Custom tags</a></li>
 <li>
 <ol type="none" class="sectlevel2">
-<li><a href="#simpletags">Simple tags</a></li>
 <li><a href="#_java_tags">Java tags</a></li>
+<li><a href="#simpletags">Simple tags</a></li>
 </ol>
 </li>
 </ol>
@@ -352,6 +352,7 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 <li><a href="#_application_assets">Application assets</a></li>
 <li><a href="#_server_assets">Server assets</a></li>
 <li><a href="#_external_assets">External assets</a></li>
+<li><a href="#_minified_assets">Minified assets</a></li>
 </ol>
 </li>
 <li><a href="#_asset_serving">Asset serving</a></li>
@@ -359,18 +360,21 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 <ol type="none" class="sectlevel2">
 <li><a href="#_declarative_asset_serving">Declarative asset serving</a></li>
 <li><a href="#_dynamic_asset_serving">Dynamic asset serving</a></li>
+<li><a href="#_asset_caching">Asset caching</a></li>
 </ol>
 </li>
 <li><a href="#_asset_server">Asset server</a></li>
 <li><a href="#_asset_manager">Asset manager</a></li>
+<li><a href="#_asset_controller">Asset controller</a></li>
 </ol>
 </li>
 <li><a href="#amd">Javascript modularity</a></li>
 <li>
 <ol type="none" class="sectlevel1">
 <li><a href="#_introduction_to_modules">Introduction to modules</a></li>
-<li><a href="#_defining_a_module">Defining a module</a></li>
-<li><a href="#_requiring_a_module">Requiring a module</a></li>
+<li><a href="#_declaring_a_module">Declaring a module</a></li>
+<li><a href="#_dependency_aliases">Dependency aliases</a></li>
+<li><a href="#_module_adapters">Module adapters</a></li>
 </ol>
 </li>
 <li><a href="#_file_upload_plugin">File upload plugin</a></li>
@@ -945,7 +949,7 @@ described in the <a href="http://docs.jboss.org/weld/reference/1.0.0/en-US/html/
 <pre>mvn archetype:generate \
    -DarchetypeGroupId=org.juzu \
    -DarchetypeArtifactId=juzu-archetype \
-   -DarchetypeVersion=0.7.0 \
+   -DarchetypeVersion=0.8.0 \
    -DgroupId=org.example \
    -DartifactId=myapp \
    -DpackageName=org.example.myapp \
@@ -978,7 +982,7 @@ provides out of the box:</p>
 <pre>mvn archetype:generate \
    -DarchetypeGroupId=org.juzu \
    -DarchetypeArtifactId=juzu-archetype \
-   -DarchetypeVersion=0.7.0 \
+   -DarchetypeVersion=0.8.0 \
    -DgroupId=org.example \
    -DartifactId=myapp \
    -DpackageName=org.example.myapp \
@@ -1078,8 +1082,8 @@ repositories {
   mavenCentral()
 }
 dependencies {
-  compile group: 'org.juzu', name: 'juzu-core', version: '0.7.0'
-  compile group: 'org.juzu', name: 'juzu-plugins-servlet', version: '0.7.0'
+  compile group: 'org.juzu', name: 'juzu-core', version: '0.8.0'
+  compile group: 'org.juzu', name: 'juzu-plugins-servlet', version: '0.8.0'
   compile group: 'javax.inject', name: 'javax.inject', version: '1'
   providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.0.1'
   runtime group: 'org.springframework', name: 'spring-web', version: '3.2.4.RELEASE'
@@ -1659,8 +1663,9 @@ is over, the server redirects the browser (with an HTTP temporary redirection) t
 <div class="sect2">
 <h3 id="_resource_phase_2"><a class="anchor" href="#_resource_phase_2"></a>Resource phase</h3>
 <div class="paragraph">
-<p>Resource phases are trivially mapped on <em>GET</em> request pretty much like a view phase. The main difference is that
-the resource phase is responsible for managing the entire response instead of just a fragment of the response.</p>
+<p>Resource phases are trivially mapped on any HTTP request pretty much like a view phase. The main difference is that
+the resource phase is responsible for managing the entire response instead of just a fragment of the response.
+Resource phases can handle any HTTP method.</p>
 </div>
 
 </div>
@@ -1914,7 +1919,7 @@ annotations <code>@View</code>, <code>@Action</code> and <code>@Resource</code> 
 </div>
 </div>
 <div class="paragraph">
-<p>With those rules:</p>
+<p>With such rules:</p>
 </div>
 <div class="ulist">
 
@@ -2121,6 +2126,46 @@ controllers have several use cases:</p>
 <p>Produce an application resource, such as an image, a script, etc&#8230;</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Resource controllers are by default bound to all HTTP methods. The <code>@Resource</code> annotation can be used to restrict
+the http methods a resource controller can handle:</p>
+</div>
+<div class="listingblock">
+
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Route</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/users/{uid}</span><span class="delimiter">&quot;</span></span>);
+<span class="annotation">@Resource</span>(method = { <span class="predefined-type">Method</span>.GET })
+<span class="directive">public</span> Response get(<span class="predefined-type">String</span> uid) {
+   ...
+}
+
+<span class="annotation">@Route</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/users/{uid}</span><span class="delimiter">&quot;</span></span>);
+<span class="annotation">@Resource</span>(method = { <span class="predefined-type">Method</span>.PUT })
+<span class="directive">public</span> Response put(<span class="predefined-type">String</span> uid) {
+   ...
+}
+
+<span class="annotation">@Route</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/users/{uid}</span><span class="delimiter">&quot;</span></span>);
+<span class="annotation">@Resource</span>(method = { <span class="predefined-type">Method</span>.DELETE })
+<span class="directive">public</span> Response delete(<span class="predefined-type">String</span> uid) {
+   ...
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-note" title="Note"></i>
+</td>
+<td class="content">
+
+resource controller HTTP method routing only works for HTTP bridges. In case of the portlet bridge routing
+is done with the controller method and therefore the HTTP method does not play a role.
+</td>
+</tr>
+</table>
 </div>
 
 </div>
@@ -3859,6 +3904,61 @@ value of the parameter:</p>
 <p>Since Juzu 0.7.0, custom tags can be implemented, either as Java class or as templates, we will study both ways in this section.</p>
 </div>
 <div class="sect2">
+<h3 id="_java_tags"><a class="anchor" href="#_java_tags"></a>Java tags</h3>
+<div class="paragraph">
+<p>Tags can also be implemented with Java code, let&#8217;s look at the actual implementation of the <em>title</em> tag:</p>
+</div>
+<div class="listingblock">
+<div class="title">The title tag implementation</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="directive">public</span> <span class="type">class</span> <span class="class">TitleTag</span> <span class="directive">extends</span> TagHandler {
+
+  <span class="directive">public</span> TitleTag() {
+    <span class="local-variable">super</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">title</span><span class="delimiter">&quot;</span></span>);
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="directive">public</span> <span class="type">void</span> render(TemplateRenderContext context, Renderable body, <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; args) <span class="directive">throws</span> <span class="exception">IOException</span> {
+    <span class="predefined-type">String</span> title = args.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">value</span><span class="delimiter">&quot;</span></span>);
+
+    <span class="comment">//</span>
+    <span class="keyword">if</span> (title != <span class="predefined-constant">null</span>) {
+      context.setTitle(title);
+    }
+
+    <span class="comment">//</span>
+    body.render(context);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+
+<ul>
+<li>
+<p>The class extends the <code>juzu.template.TagHandler</code> abstract class</p>
+</li>
+<li>
+<p>The constructor must provide the tag name to the <code>TagHandler</code> super constructor</p>
+</li>
+<li>
+<p>The tag is rendered with the <code>render</code> method</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Finally the tag must be declared as a <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/jar/jar.html#Service%20Provider">Java Service Provider API</a> which is achieved by having the following content in the
+<em>META-INF/services/juzu.template.TagHandler</em> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">The tag declaration</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java">juzu.impl.tags.TitleTag <span class="error">#</span> the tag service provider</code></pre>
+</div>
+</div>
+
+</div>
+<div class="sect2">
 <h3 id="simpletags"><a class="anchor" href="#simpletags"></a>Simple tags</h3>
 <div class="paragraph">
 <p>Simple tags allow creation of custom tags with templates located in the <code>tags</code> package of your application.</p>
@@ -3932,60 +4032,21 @@ by the <code>decorate</code> tag).</p>
 </div>
 
 </div>
-
-</div>
-<div class="sect2">
-<h3 id="_java_tags"><a class="anchor" href="#_java_tags"></a>Java tags</h3>
+<div class="sect3">
+<h4 id="_turning_a_simple_tag_into_a_reusable_tag"><a class="anchor" href="#_turning_a_simple_tag_into_a_reusable_tag"></a>Turning a simple tag into a reusable tag</h4>
 <div class="paragraph">
-<p>Tags can also be implemented with Java code, let&#8217;s look at the actual implementation of the <em>title</em> tag:</p>
+<p>A simple tag is usually an applicative tag, it is also nonetheless a Java tag and it can be reused outside of the
+application that defined it. A simple tag can be reused by merely declaring it in a <em>META-INF/services/juzu.template.TagHandler</em>
+file. The corresponding Java class to declare is created by concatenating the application package, the <code>tags</code> name and
+  the tag name. With the previous example it gives us:</p>
 </div>
 <div class="listingblock">
-<div class="title">The title tag implementation</div>
+<div class="title">The mytag declaration</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="directive">public</span> <span class="type">class</span> <span class="class">TitleTag</span> <span class="directive">extends</span> TagHandler {
-
-  <span class="directive">public</span> TitleTag() {
-    <span class="local-variable">super</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">title</span><span class="delimiter">&quot;</span></span>);
-  }
-
-  <span class="annotation">@Override</span>
-  <span class="directive">public</span> <span class="type">void</span> render(TemplateRenderContext context, Renderable body, <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">String</span>&gt; args) <span class="directive">throws</span> <span class="exception">IOException</span> {
-    <span class="predefined-type">String</span> title = args.get(<span class="string"><span class="delimiter">&quot;</span><span class="content">value</span><span class="delimiter">&quot;</span></span>);
-
-    <span class="comment">//</span>
-    <span class="keyword">if</span> (title != <span class="predefined-constant">null</span>) {
-      context.setTitle(title);
-    }
-
-    <span class="comment">//</span>
-    body.render(context);
-  }
-}</code></pre>
+<pre class="CodeRay"><code class="java language-java">my.application.tags.mytag</code></pre>
 </div>
 </div>
-<div class="ulist">
 
-<ul>
-<li>
-<p>The class extends the <code>juzu.template.TagHandler</code> abstract class</p>
-</li>
-<li>
-<p>The constructor must provide the tag name to the <code>TagHandler</code> super constructor</p>
-</li>
-<li>
-<p>The tag is rendered with the <code>render</code> method</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Finally the tag must be declared as a <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/jar/jar.html#Service%20Provider">Java Service Provider API</a> which is achieved by having the following content in the
-<em>META-INF/services/juzu.template.TagHandler</em> file:</p>
-</div>
-<div class="listingblock">
-<div class="title">The tag declaration</div>
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java">juzu.impl.tags.TitleTag <span class="error">#</span> the tag service provider</code></pre>
-</div>
 </div>
 
 </div>
@@ -4249,24 +4310,24 @@ various methods of the provider.</p>
    * Process the template.
    *
    * @param context the process context
-   * @param template  the template to process
+   * @param templateModel  the template to process
    * @throws TemplateException any template related exception
    */</span>
   <span class="directive">public</span> <span class="directive">abstract</span> <span class="type">void</span> process(
       ProcessContext context,
-      Template&lt;M&gt; template) <span class="directive">throws</span> TemplateException;
+      TemplateModel&lt;M&gt; templateModel) <span class="directive">throws</span> TemplateException;
 
   <span class="comment">/**
    * Provide an opportunity for emitting a file on the disk.
    *
    * @param context the emit context
-   * @param template the template
+   * @param templateModel the template
    * @throws TemplateException any template related exception
    * @throws IOException any io exception
    */</span>
   <span class="directive">public</span> <span class="directive">abstract</span> <span class="type">void</span> emit(
       EmitContext context,
-      Template&lt;M&gt; template) <span class="directive">throws</span> TemplateException, <span class="exception">IOException</span>;</code></pre>
+      TemplateModel&lt;M&gt; templateModel) <span class="directive">throws</span> TemplateException, <span class="exception">IOException</span>;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4298,11 +4359,11 @@ is simply returned</p>
 checking type safe URL and translating them into controller companion invocation</p>
 </li>
 <li>
-<p>The <code>juzu.impl.template.spi.Template</code> argument represents the template, it has several fields such as the template
+<p>The <code>juzu.impl.template.spi.TemplateModel</code> argument models the template, it has several fields such as the underlying
 model or the template path</p>
 </li>
 <li>
-<p>The implementation can declare type safe parameters using the <code>Template#addParameter(String)</code> method. The declared
+<p>The implementation can declare type safe parameters using the <code>TemplateModel#addParameter(String)</code> method. The declared
 parameters will be generated on the <code>juzu.template.Template</code> subclass</p>
 </li>
 </ul>
@@ -4492,10 +4553,10 @@ are used as only the <code>index</code> type declares the fluent API.</p>
 
 <ul>
 <li>
-<p>declare the asset</p>
+<p>declare an asset</p>
 </li>
 <li>
-<p>serve the asset</p>
+<p>serve this asset</p>
 </li>
 </ul>
 </div>
@@ -4503,17 +4564,20 @@ are used as only the <code>index</code> type declares the fluent API.</p>
 <h2 id="_asset_plugin"><a class="anchor" href="#_asset_plugin"></a>Asset plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The asset plugin provides declarative asset configuration. The <code>@Assets</code> annotation declares a list of assets used by
-the an application.</p>
+<p>The asset plugin provides declarative asset configuration. The <code>@Scripts</code> and + @Stylesheets+ annotations declares a list
+of script and stylesheet assets used by an application.</p>
 </div>
 <div class="listingblock">
-<div class="title">jQuery UI declarative asset configuration</div>
+<div class="title">jQuery UI declarative script configuration</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>({
-  <span class="annotation">@Asset</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>), <span class="comment">// <i class="conum">1</i></span>
-  <span class="annotation">@Asset</span>(value = { <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-ui-1.7.2.custom.min.js</span><span class="delimiter">&quot;</span></span>, ui-lightness/jquery-ui-<span class="float">1.7</span><span class="float">.2</span>.custom.css }, <span class="comment">// <i class="conum">2</i></span>
-         depends = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>) <span class="comment">// <i class="conum">3</i></span>
-  }}
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>({
+  <span class="annotation">@Script</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>), <span class="comment">// <i class="conum">1</i></span>
+  <span class="annotation">@Script</span>(
+    id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-ui</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-ui-1.7.2.custom.min.js</span><span class="delimiter">&quot;</span></span>, <span class="comment">// <i class="conum">2</i></span>
+    depends = {<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-ui.css</span><span class="delimiter">&quot;</span></span>}) <span class="comment">// <i class="conum">3</i></span>
+})
+<span class="annotation">@Stylesheets</span>(
+  <span class="annotation">@Stylesheet</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-ui.css</span><span class="delimiter">&quot;</span></span>, value = <span class="string"><span class="delimiter">&quot;</span><span class="content">ui-lightness/jquery-ui-1.7.2.custom.css</span><span class="delimiter">&quot;</span></span>) <span class="comment">// <i class="conum">4</i></span>
 )
 <span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
 </div>
@@ -4523,15 +4587,19 @@ the an application.</p>
 <table>
 <tr>
 <td><i class="conum">1</i></td>
-<td>declares the <em>jQuery</em> asset</td>
+<td>declares the <em>jquery</em> asset</td>
 </tr>
 <tr>
 <td><i class="conum">2</i></td>
-<td>declares the <em>jQuery-UI</em> asset composed of the JavaScript source and its associated stylesheet</td>
+<td>declares the <em>jquery-ui</em> asset composed of the JavaScript source and its associated stylesheet</td>
 </tr>
 <tr>
 <td><i class="conum">3</i></td>
-<td>depends on <code>jquery</code> assets</td>
+<td>depends on <em>jquery</em> and <em>jquery-ui.css</em> assets</td>
+</tr>
+<tr>
+<td><i class="conum">4</i></td>
+<td>declares the <em>jquery-ui.css</em> asset</td>
 </tr>
 </table>
 </div>
@@ -4559,21 +4627,8 @@ the an application.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>For example, the <em>jQuery-UI</em> plugin could be identified by <em>jquery-ui</em> with the dependency onto the <em>jquery</em> js asset and
+<p>For example, the <em>jQuery-UI</em> plugin could be identified by <em>jquery-ui</em> with the dependency onto the <em>jQuery</em> script and
 the <em>jQuery-UI</em> stylesheet. Its physical location would be the <code>asset</code> package with the <code>jquery-ui-1.4.2.min.js</code> name.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="icon-note" title="Note"></i>
-</td>
-<td class="content">
-
-an empty value asset is useful for declaring an asset defined by its dependencies
-</td>
-</tr>
-</table>
 </div>
 <div class="sect2">
 <h3 id="_the_asset_identifier"><a class="anchor" href="#_the_asset_identifier"></a>The asset identifier</h3>
@@ -4585,10 +4640,10 @@ an empty value asset is useful for declaring an asset defined by its dependencie
 
 <ul>
 <li>
-<p>The value <code>jquery-ui-1.7.2.custom.min.js</code> produces the same <code>jquery-ui-1.7.2.custom.min.js</code> value</p>
+<p>The value <code>jquery-ui-1.7.2.custom.min.js</code> produces the same <code>jquery-ui-1.7.2.custom.min.js</code> id</p>
 </li>
 <li>
-<p>The value <code>js/jquery-ui-1.7.2.custom.min.js</code> produces the <code>jquery-ui-1.7.2.custom.min.js</code>  value</p>
+<p>The value <code>js/jquery-ui-1.7.2.custom.min.js</code> produces the <code>js/jquery-ui-1.7.2.custom.min.js</code> id</p>
 </li>
 </ul>
 </div>
@@ -4604,7 +4659,7 @@ an application packaged under <code>my.application</code> will have its relative
 <div class="listingblock">
 <div class="title">Declarative relative application asset configuration</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>(<span class="annotation">@Asset</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">myscript.js</span><span class="delimiter">&quot;</span></span>))
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">myscript.js</span><span class="delimiter">&quot;</span></span>))
 <span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
 </div>
 </div>
@@ -4622,7 +4677,7 @@ the war file containing the application.</p>
 <div class="listingblock">
 <div class="title">Declarative relative server asset configuration</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>(<span class="annotation">@Asset</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">myscript.js</span><span class="delimiter">&quot;</span></span>, location = AssetLocation.SERVER))
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">myscript.js</span><span class="delimiter">&quot;</span></span>, location = AssetLocation.SERVER))
 <span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
 </div>
 </div>
@@ -4636,9 +4691,27 @@ the war file containing the application.</p>
 <div class="listingblock">
 <div class="title">External classpath asset configuration</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>(<span class="annotation">@Asset</span>(
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(
   value = <span class="string"><span class="delimiter">&quot;</span><span class="content">https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js</span><span class="delimiter">&quot;</span></span>,
   location = AssetLocation.URL))
+<span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
+</div>
+</div>
+
+</div>
+<div class="sect2">
+<h3 id="_minified_assets"><a class="anchor" href="#_minified_assets"></a>Minified assets</h3>
+<div class="paragraph">
+<p>For performance reasons, assets can be minified: an optimized and trimmed down version of the script or stylesheet
+is served instead of the original file, because it has a smaller size. Juzu allows to provide a minified version
+of an asset that will be used in _prod+ run mode.</p>
+</div>
+<div class="listingblock">
+<div class="title">Providing a minified version of jQuery</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(
+  value = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery.js</span><span class="delimiter">&quot;</span></span>,
+  minified = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery.min.js</span><span class="delimiter">&quot;</span></span>))
 <span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
 </div>
 </div>
@@ -4681,18 +4754,18 @@ on the classpath.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Asset serving can either be done declaratively with the <code>@WithAssets</code> annotation or with methods of the <code>juzu.Response.Content</code>
+<p>Asset serving can either be done declaratively with the <code>@Assets</code> annotation or with methods of the <code>juzu.Response.Content</code>
 class.</p>
 </div>
 <div class="sect2">
 <h3 id="_declarative_asset_serving"><a class="anchor" href="#_declarative_asset_serving"></a>Declarative asset serving</h3>
 <div class="paragraph">
-<p>The <code>WithAssets</code> annotation tells Juzu to add an asset to a content response, it takes asset ids as arguments:</p>
+<p>The <code>Assets</code> annotation tells Juzu to add an asset to a content response, it takes asset ids as arguments:</p>
 </div>
 <div class="listingblock">
 <div class="title">Serve jQuery and Twitter Bootstrap with the application index page</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@WithAssets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap</span><span class="delimiter">&quot;</span></span>)
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">bootstrap</span><span class="delimiter">&quot;</span></span>)
 <span class="annotation">@View</span>
 <span class="directive">public</span> Response.Content index() {
   ...
@@ -4704,7 +4777,7 @@ class.</p>
  <em>cascaded</em> to the nested controllers:</p>
 </div>
 <table class="tableblock frame-all grid-all" style="width:100%; ">
-<caption class="title">Table 4. <code>@WithAssets</code> annotations are cascaded with a few rules</caption>
+<caption class="title">Table 4. <code>@Assets</code> annotations are cascaded with a few rules</caption>
 <colgroup>
 <col style="width:50%;">
 <col style="width:50%;"> 
@@ -4731,13 +4804,25 @@ class.</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>Those rules apply where the <code>@WithAssets</code> annotation occurs, in particular it is also valid for overriden methods.
-The overriding method will not use the annotations of its current class or packages unless the method redeclares an <code>@WithAssets</code>
+<p>Those rules apply where the <code>@Assets</code> annotation occurs, in particular it is also valid for overriden methods.
+The overriding method will not use the annotations of its current class or packages unless the method redeclares an <code>@Assets</code>
  annotation (possibly empty).</p>
 </div>
 <div class="paragraph">
 <p>Annotating the application package with <code>#WithAsset</code> will serve all assets declared in the application for all controllers.
 If you need finer grained serving, remove it and use it on controller directly.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@Assets</code> annotation can use the wildcard value <code>*</code> to serve all assets declared in the application:</p>
+</div>
+<div class="listingblock">
+<div class="title">Serving all application assets</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java">...
+<span class="annotation">@Application</span>
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">*</span><span class="delimiter">&quot;</span></span>)
+<span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
+</div>
 </div>
 
 </div>
@@ -4769,10 +4854,43 @@ using the Juzu API.</p>
 </td>
 <td class="content">
 
-The <code>@WithAssets</code> annotation and the <code>withAssets</code> method are cumulative.{{/note}}
+The <code>@Assets</code> annotation and the <code>withAssets</code> method are cumulative.
 </td>
 </tr>
 </table>
+</div>
+
+</div>
+<div class="sect2">
+<h3 id="_asset_caching"><a class="anchor" href="#_asset_caching"></a>Asset caching</h3>
+<div class="paragraph">
+<p>Proper asset caching is important for delivering good front end performance. To implement this, Juzu relies
+on <em>Cache-Control</em> and <em>ETag</em> http response headers.</p>
+</div>
+<div class="paragraph">
+<p>When an asset is served, the asset server will set an <em>ETag</em> header hashed from the asset name and
+the asset last modification date. By default, the server will also set the <em>Cache-Control</em> header to the
+<em>max-age=3600</em> value. This value can be modified globally:</p>
+</div>
+<div class="listingblock">
+<div class="title">Configuring the max-age cache header for all scripts</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>), maxAge = <span class="integer">1000</span>),
+<span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It can also be modified for a specific asset:</p>
+</div>
+<div class="listingblock">
+<div class="title">Configuring the max-age cache header for a specific script</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">javascripts/jquery-1.7.1.min.js</span><span class="delimiter">&quot;</span></span>, maxAge = <span class="integer">1000</span>)),
+<span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In <em>dev</em> or <em>live</em> mode, asset caching is disabled and the served <em>Cache-Control</em> header is set to <em>no-cache, no-store, must-revalidate</em>.</p>
 </div>
 
 </div>
@@ -4843,6 +4961,78 @@ when it is resolved by the web browsers</p>
 
 </div>
 </div>
+<div class="sect1">
+<h2 id="_asset_controller"><a class="anchor" href="#_asset_controller"></a>Asset controller</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The asset controller is a special controller provided by the asset manager for creating application asset urls at runtime.</p>
+</div>
+<div class="paragraph">
+<p>It can be injected in any bean and provides two methods:</p>
+</div>
+<div class="ulist">
+
+<ul>
+<li>
+<p>the <code>byPath</code> method transforms the path of an asset into a URL served by the asset server</p>
+<div class="ulist">
+
+<ul>
+<li>
+<p>the asset are served from the <code>assets</code> package</p>
+</li>
+<li>
+<p>the asset controller can provide URL for any kind of asset, such as an image</p>
+</li>
+</ul>
+</div>
+
+</li>
+<li>
+<p>the <code>byId</code> method transforms the id of an asset into a URL served by the asset server</p>
+<div class="ulist">
+
+<ul>
+<li>
+<p>the asset can have any location (application, server or external)</p>
+</li>
+<li>
+<p>the minified asset can be used when running in <em>prod</em> mode</p>
+</li>
+</ul>
+</div>
+
+</li>
+</ul>
+</div>
+<div class="listingblock">
+
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java">
+<span class="annotation">@Inject</span>
+juzu.plugin.asset.AssetController assetController;
+
+<span class="annotation">@View</span>
+<span class="directive">public</span> Response.Content index() {
+   <span class="predefined-type">String</span> jqueryURL1 = assetController.byPath(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery.js</span><span class="delimiter">&quot;</span></span>);
+   <span class="predefined-type">String</span> jqueryURL2 = assetController.byId(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>);
+   ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The asset controller can also be used in templates as it is bound under the <code>Assets</code> name:</p>
+</div>
+<div class="listingblock">
+
+<div class="content monospaced">
+<pre class="CodeRay"><code>&lt;script type="application/javascript" src="@{Assets.url(path='jquery.js')}"&gt;&lt;/script&gt;
+&lt;script type="application/javascript" src="@{Assets.url(id='jquery')}"&gt;&lt;/script&gt;</code></pre>
+</div>
+</div>
+
+</div>
+</div>
 
 <h1 id="amd" class="sect0"><a class="anchor" href="#amd"></a>Javascript modularity</h1>
 <div class="paragraph">
@@ -4894,83 +5084,124 @@ parallel fashion providing parallel loading, namespacing and dependency manageme
 </div>
 </div>
 <div class="sect1">
-<h2 id="_defining_a_module"><a class="anchor" href="#_defining_a_module"></a>Defining a module</h2>
+<h2 id="_declaring_a_module"><a class="anchor" href="#_declaring_a_module"></a>Declaring a module</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>@Defines</code> and <code>@Define</code> are used to declare the JavaScript which is either a canonical module as defined
- by the AMD specification or a simple self-executing function.</p>
-</div>
-<div class="paragraph">
-<p>When the javascript is self-executing function, this script is wrapped to provide the expected RequireJS format, let&#8217;s
-study a quick example with a module:</p>
+<p>The <code>@Modules</code> and <code>@Module</code> are used to declare JavaScript modules as defined by the <a href="https://github.com/amdjs/amdjs-api/wiki/AMD">AMD specification</a>:</p>
 </div>
 <div class="listingblock">
 <div class="title">Defining a simple module</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Defines</span>(value={<span class="annotation">@Define</span>(name=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, path=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>)})
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Modules</span>(<span class="annotation">@Module</span>(id=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, value=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>))
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>)
 <span class="keyword">package</span> <span class="namespace">my.application</span></code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">The <code>foo.js</code> self-executing function</div>
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java">(function () {
-  <span class="comment">//Do something</span>
-})();</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Equivalent to this declaration in the RequireJS format:</p>
-</div>
-<div class="listingblock">
-
+<div class="title">The <code>foo.js</code> module</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java">define(<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, function() {
-  <span class="keyword">return</span> <span class="comment">//Something</span>
+  <span class="keyword">return</span> {
+    text: <span class="string"><span class="delimiter">&quot;</span><span class="content">Hello</span><span class="delimiter">&quot;</span></span>
+  };
 });</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Modularity allows to define cross dependencies between modules, the <code>@Define</code> annotation allows that:</p>
+<p>Modularity allows to define dependencies accross modules, the <code>@Module</code> annotation <code>depends</code> member can be used
+for declaring those dependencies. It is not formally require in the client side to define such dependencies as they
+are already declared in the JavaScript module itself, Juzu needs to be aware of those dependencies in order to
+compute the specific _require.js+ configuration when serving a page.</p>
 </div>
 <div class="listingblock">
 <div class="title">Defining a module with dependencies</div>
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Defines</span>(
-  value = {
-    <span class="annotation">@Define</span>(name=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, path=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>),
-    <span class="annotation">@Define</span>(name=<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, path=<span class="string"><span class="delimiter">&quot;</span><span class="content">bar.js</span><span class="delimiter">&quot;</span></span>, dependencies={<span class="annotation">@Dependency</span>(name=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, alias=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo</span><span class="delimiter">&quot;</span></span>)}}
-)</code></pre>
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Modules</span>({
+  <span class="annotation">@Module</span>(id=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, value=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>),
+  <span class="annotation">@Module</span>(<span class="annotation">@id</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, value=<span class="string"><span class="delimiter">&quot;</span><span class="content">bar.js</span><span class="delimiter">&quot;</span></span>, depends={<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>})
+})
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">The <code>bar.js</code> self-executing function</div>
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java">(function(foo) {
-  <span class="comment">//Do something</span>
-})(foo);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Equivalent to this declaration in the RequireJS format:</p>
-</div>
-<div class="listingblock">
-
+<div class="title">The <code>bar.js</code> module</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java">define(<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, [<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>], function(foo) {
-  <span class="keyword">return</span> <span class="comment">//Something</span>
+  <span class="keyword">return</span> {
+    text : foo.text + <span class="string"><span class="delimiter">&quot;</span><span class="content"> World</span><span class="delimiter">&quot;</span></span>
+  };
 });</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The Juzu AMD plugin allows to provide custom adapter for adapting the script to the expected format. With this flexibility
-it is possible to declare an adapter wrapping the adapted script. The jQuery library is a good example of how a custom
-adapter can be useful. Thanks to the adapter feature we can reuse the jQuery without any change:</p>
+<p>The module identifiers declared inside the JavaScript modules must match the identifiers declared in the <code>depends</code>
+and <code>id</code> annotation declarations.</p>
+</div>
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dependency_aliases"><a class="anchor" href="#_dependency_aliases"></a>Dependency aliases</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes a dependency id declared by a JavaScript module does not fit the application and it needs to be changed to
+ another value.</p>
+</div>
+<div class="paragraph">
+<p>For example let&#8217;s say that the <em>Foo</em> dependency should be renamed <em>foo</em> in the <code>bar.js</code> module</p>
 </div>
 <div class="listingblock">
-<div class="title">The jQuery uses the following construct for defining itself</div>
+<div class="title">The <code>bar.js</code> module</div>
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java">define(<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, [<span class="string"><span class="delimiter">&quot;</span><span class="content">foo</span><span class="delimiter">&quot;</span></span>], function(foo) {
+  <span class="keyword">return</span> {
+    text : foo.text + <span class="string"><span class="delimiter">&quot;</span><span class="content"> World</span><span class="delimiter">&quot;</span></span>
+  };
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case dependency ids can be aliased by the <code>@Module</code> annotation:</p>
+</div>
+<div class="listingblock">
+
+<div class="content monospaced">
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Modules</span>({
+  <span class="annotation">@Module</span>(id=<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, value=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>),
+  <span class="annotation">@Module</span>(id=<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, value=<span class="string"><span class="delimiter">&quot;</span><span class="content">bar.js</span><span class="delimiter">&quot;</span></span>, depends={<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>}, aliases={<span class="string"><span class="delimiter">&quot;</span><span class="content">foo</span><span class="delimiter">&quot;</span></span>)})
+})
+<span class="annotation">@Assets</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>)</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="icon-note" title="Note"></i>
+</td>
+<td class="content">
+
+The Juzu AMD definition provides dependency aliasing only for JavaScript located at <code>AssetLocation.APPLICATION</code>.
+</td>
+</tr>
+</table>
+</div>
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_module_adapters"><a class="anchor" href="#_module_adapters"></a>Module adapters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The AMD plugin allows to provide custom adapter for adapting JavaScript files to the expected format. It allows
+to turn non JavaScript files into proper JavaScript modules. Thanks to the adapter feature we can reuse the
+jQuery without any change:</p>
+</div>
+<div class="listingblock">
+<div class="title">The jQuery uses the following construct</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java">(function(window, undefined) {
+  ...
 })(window);</code></pre>
 </div>
 </div>
@@ -4981,10 +5212,11 @@ value as expected by the dependency system. Thanks to the custom adapter we can 
 <div class="listingblock">
 
 <div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Define</span>(
-  id = <span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>,
-  path=<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-1.7.1.js</span><span class="delimiter">&quot;</span></span>,
-  adapter=<span class="string"><span class="delimiter">&quot;</span><span class="content">(function() { @{include} return jQuery.noConflict(true);})();</span><span class="delimiter">&quot;</span></span>)</code></pre>
+<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Module</span>(
+  id=<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>,
+  value=<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery-1.7.1.js</span><span class="delimiter">&quot;</span></span>,
+  adapter=<span class="string"><span class="delimiter">&quot;</span><span class="content">(function() { @{include} return jQuery.noConflict(true);})();</span><span class="delimiter">&quot;</span></span>
+)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -5010,56 +5242,10 @@ value as expected by the dependency system. Thanks to the custom adapter we can 
 </td>
 <td class="content">
 
-The Juzu AMD definition adapts only the javascript located at <code>AssetLocation.APPLICATION</code>. The <code>@Require</code> annotation
-must be used for other kind of locations.
+The Juzu AMD definition adapts only the JavaScript located at <code>AssetLocation.APPLICATION</code>.
 </td>
 </tr>
 </table>
-</div>
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="_requiring_a_module"><a class="anchor" href="#_requiring_a_module"></a>Requiring a module</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Juzu AMD <code>@Require</code> annotation only register a JavaScript module for RequireJS Loader. It does not wrap or adapt
-content and does not manage module dependencies.</p>
-</div>
-<div class="paragraph">
-<p>Here is an example of using <code>@Requires</code> and <code>@Require</code> to register the <code>foo.js</code> script and the <code>bar.js</code> scripts
-that depends on <code>foo.js</code>.</p>
-</div>
-<div class="listingblock">
-
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java"><span class="annotation">@Requires</span> (
-  value = {
-    <span class="annotation">@Require</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, path = <span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>),
-    <span class="annotation">@Require</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, path = <span class="string"><span class="delimiter">&quot;</span><span class="content">bar.js</span><span class="delimiter">&quot;</span></span>)}
-)
-<span class="keyword">package</span> <span class="namespace">my.application</span>;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">The <code>foo.js</code> module declaration</div>
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java">define(<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>, function() {
-  <span class="keyword">return</span> {
-    text: <span class="string"><span class="delimiter">&quot;</span><span class="content">Hello</span><span class="delimiter">&quot;</span></span>
-  };
-});</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">The <code>bar.js</code> module declaration</div>
-<div class="content monospaced">
-<pre class="CodeRay"><code class="java language-java">define(<span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>, [<span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>], function(foo) {
-  <span class="keyword">return</span> {
-    text : foo.text + <span class="string"><span class="delimiter">&quot;</span><span class="content"> World</span><span class="delimiter">&quot;</span></span>
-  };
-});</code></pre>
-</div>
 </div>
 
 </div>
@@ -5176,14 +5362,14 @@ source code into a CSS stylesheet. The runtime part is usually done by the Asset
 annotated package should contain the stylesheet, this is done on purpose to coincide exactly with the
 <code>assets</code> package used by the Asset plugin. During the compilation phase the <em>stylesheet.less</em> will be compiled
 to the <em>stylesheet.css</em>. If we want this file to be served with the application we simply add the corresponding
-<code>@Assets</code> annotation:</p>
+<code>@Stylesheets</code> annotation:</p>
 </div>
 <div class="listingblock">
 <div class="title">LESS and Asset plugins in action</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java"><span class="annotation">@Less</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">stylesheet.less</span><span class="delimiter">&quot;</span></span>)
-<span class="annotation">@Assets</span>({
-  <span class="annotation">@Asset</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">stylesheet.css</span><span class="delimiter">&quot;</span></span>, location = AssetLocation.CLASSPATH)
+<span class="annotation">@Stylesheets</span>({
+  <span class="annotation">@Stylesheet</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">stylesheet.css</span><span class="delimiter">&quot;</span></span>, location = AssetLocation.CLASSPATH)
 })
 <span class="annotation">@Application</span>
 <span class="keyword">package</span> <span class="namespace">myapp</span>;
@@ -5213,7 +5399,7 @@ can be used, this option will trim the whitespace when processing the file : <co
 <pre class="CodeRay"><code class="xml language-xml">&lt;dependency&gt;
   &lt;groupId&gt;org.juzu&lt;/groupId&gt;
   &lt;artifactId&gt;juzu-plugins-less&lt;/artifactId&gt;
-  &lt;version&gt;0.7.0&lt;/version&gt;
+  &lt;version&gt;0.8.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
@@ -5241,7 +5427,7 @@ plugin or the <em>AMD</em> plugin.</p>
 <div class="title">Annotating an application package for declaring WebJars</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
-<span class="annotation">@WebJars</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@WebJars</span>(<span class="annotation">@WebJar</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>))
 <span class="keyword">package</span> <span class="namespace">myapp</span>;
 
 <span class="keyword">import</span> <span class="include">juzu.Application</span>;
@@ -5253,57 +5439,84 @@ plugin or the <em>AMD</em> plugin.</p>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="xml language-xml"><span class="tag">&lt;dependency&gt;</span>
   <span class="tag">&lt;groupId&gt;</span>org.webjars<span class="tag">&lt;/groupId&gt;</span>
-  <span class="tag">&lt;artifactId&gt;</span>foo<span class="tag">&lt;/artifactId&gt;</span>
-  <span class="tag">&lt;version&gt;</span>1.0<span class="tag">&lt;/version&gt;</span>
+  <span class="tag">&lt;artifactId&gt;</span>jquery<span class="tag">&lt;/artifactId&gt;</span>
+  <span class="tag">&lt;version&gt;</span>1.10.2<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <em>foo.js</em> file will be located in the <code>myapp.assets</code> package.</p>
+<p>The plugin will copy the content of the <em>jquery</em> webjar content to the application <code>assets</code> directory, they will be available as
+any other asset. For this example the <em>jquery/1.10.2/jquery.js</em> and <em>jquery/1.10.2/jquery.min.js</em> files will be
+in the <code>myapp.assets</code> package.</p>
 </div>
 <div class="paragraph">
-<p>If we want this file to be served with the application we simply add the corresponding <code>@Assets</code> annotation:</p>
+<p>If we want this file to be served with the application we simply add the corresponding <code>@Scripts</code> annotation:</p>
 </div>
 <div class="listingblock">
 <div class="title">WebJars and Asset plugin in action</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
-<span class="annotation">@WebJars</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>)
-<span class="annotation">@Assets</span>(<span class="annotation">@Asset</span>(id = <span class="string"><span class="delimiter">&quot;</span><span class="content">foo</span><span class="delimiter">&quot;</span></span>,  value=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>))
+<span class="annotation">@WebJars</span>(<span class="annotation">@WebJar</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery</span><span class="delimiter">&quot;</span></span>))
+<span class="annotation">@Scripts</span>(<span class="annotation">@Script</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">jquery/1.10.2/jquery.js</span><span class="delimiter">&quot;</span></span>))
 <span class="keyword">package</span> <span class="namespace">myapp</span>;
 
 <span class="keyword">import</span> <span class="include">juzu.Application</span>;
-<span class="keyword">import</span> <span class="include">juzu.plugin.asset.Assets</span>;
+<span class="keyword">import</span> <span class="include">juzu.plugin.asset.Scripts</span>;
 <span class="keyword">import</span> <span class="include">juzu.plugin.asset.Script</span>;
 <span class="keyword">import</span> <span class="include">juzu.plugin.webjars.WebJars</span>;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>It can also be used as a JavaScript module with the <em>AMD</em> plugin:</p>
+<p>You don&#8217;t need to specify the WebJar version because the WebJars plugin will find it automatically (by examining the Maven
+metadata stored in the jar). However some jars have files that don&#8217;t correspond to the WebJar version (usually patch
+releases), in that case you can specify the version to help the plugin find the files:</p>
 </div>
 <div class="listingblock">
-<div class="title">WebJars and AMD plugin in action</div>
+
+<div class="content monospaced">
+<pre class="CodeRay"><code class="xml language-xml"><span class="tag">&lt;dependency&gt;</span>
+          <span class="tag">&lt;groupId&gt;</span>org.webjars<span class="tag">&lt;/groupId&gt;</span>
+          <span class="tag">&lt;artifactId&gt;</span>angular-ui-bootstrap<span class="tag">&lt;/artifactId&gt;</span>
+          <span class="tag">&lt;version&gt;</span>0.7.0-1<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For this particular version <em>0.7.0-1</em> the effective version to use it <em>0.7.0</em>. This can be achieved by examining the
+ jar:</p>
+</div>
+<div class="listingblock">
+
+<div class="content monospaced">
+<pre>&gt; cd .m2/repository/org/webjars/angular-ui-bootstrap/0.7.0-1/
+&gt; jar -tvf angular-ui-bootstrap-0.7.0-1.jar
+     0 Fri Dec 06 08:50:36 CET 2013 META-INF/
+   125 Fri Dec 06 08:50:34 CET 2013 META-INF/MANIFEST.MF
+     0 Fri Dec 06 08:50:30 CET 2013 META-INF/resources/
+     0 Fri Dec 06 08:50:30 CET 2013 META-INF/resources/webjars/
+     0 Fri Dec 06 08:50:30 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/
+     0 Fri Dec 06 08:50:34 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/
+   230 Fri Dec 06 08:50:30 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/webjars-requirejs.js
+ 51488 Fri Dec 06 08:50:34 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/ui-bootstrap-tpls.min.js
+122931 Fri Dec 06 08:50:34 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/ui-bootstrap-tpls.js
+ 40129 Fri Dec 06 08:50:34 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/ui-bootstrap.min.js
+109195 Fri Dec 06 08:50:34 CET 2013 META-INF/resources/webjars/angular-ui-bootstrap/0.7.0/ui-bootstrap.js
+     0 Fri Dec 06 08:50:36 CET 2013 META-INF/maven/
+     0 Fri Dec 06 08:50:36 CET 2013 META-INF/maven/org.webjars/
+     0 Fri Dec 06 08:50:36 CET 2013 META-INF/maven/org.webjars/angular-ui-bootstrap/
+  5217 Fri Dec 06 08:50:26 CET 2013 META-INF/maven/org.webjars/angular-ui-bootstrap/pom.xml
+   118 Fri Dec 06 08:50:34 CET 2013 META-INF/maven/org.webjars/angular-ui-bootstrap/pom.properties</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this special case, we need to tell the version to the plugin:</p>
+</div>
+<div class="listingblock">
+<div class="title">WebJars and Asset plugin in action</div>
 <div class="content monospaced">
 <pre class="CodeRay"><code class="java language-java"><span class="annotation">@Application</span>
-<span class="annotation">@WebJars</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>)
-<span class="annotation">@Defines</span>({
-  <span class="annotation">@Define</span>(
-    name = <span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>,
-    path=<span class="string"><span class="delimiter">&quot;</span><span class="content">foo.js</span><span class="delimiter">&quot;</span></span>
-  ),
-  <span class="annotation">@Define</span>(
-    name = <span class="string"><span class="delimiter">&quot;</span><span class="content">Bar</span><span class="delimiter">&quot;</span></span>,
-    path=<span class="string"><span class="delimiter">&quot;</span><span class="content">bar.js</span><span class="delimiter">&quot;</span></span>,
-    dependencies = {<span class="annotation">@Dependency</span>(name = <span class="string"><span class="delimiter">&quot;</span><span class="content">Foo</span><span class="delimiter">&quot;</span></span>)}
-  )
-})
-<span class="keyword">package</span> <span class="namespace">myapp</span>;
-
-<span class="keyword">import</span> <span class="include">juzu.Application</span>;
-<span class="keyword">import</span> <span class="include">juzu.plugin.amd.Define</span>;
-<span class="keyword">import</span> <span class="include">juzu.plugin.amd.Defines</span>;
-<span class="keyword">import</span> <span class="include">juzu.plugin.amd.Dependency</span>;
-<span class="keyword">import</span> <span class="include">juzu.plugin.webjars.WebJars</span>;</code></pre>
+<span class="annotation">@WebJars</span>(<span class="annotation">@WebJar</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">angular-ui-bootstrap</span><span class="delimiter">&quot;</span></span>, version = <span class="string"><span class="delimiter">&quot;</span><span class="content">0.7.0</span><span class="delimiter">&quot;</span></span>))
+<span class="keyword">package</span> <span class="namespace">myapp</span>;</code></pre>
 </div>
 </div>
 
@@ -5322,7 +5535,7 @@ plugin or the <em>AMD</em> plugin.</p>
 <pre class="CodeRay"><code class="xml language-xml">&lt;dependency&gt;
   &lt;groupId&gt;org.juzu&lt;/groupId&gt;
   &lt;artifactId&gt;juzu-plugins-webjars&lt;/artifactId&gt;
-  &lt;version&gt;0.7.0&lt;/version&gt;
+  &lt;version&gt;0.8.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
@@ -5531,7 +5744,7 @@ can only be performed during an action phase.
 <pre class="CodeRay"><code class="xml language-xml">&lt;dependency&gt;
   &lt;groupId&gt;org.juzu&lt;/groupId&gt;
   &lt;artifactId&gt;juzu-plugins-portlet&lt;/artifactId&gt;
-  &lt;version&gt;0.7.0&lt;/version&gt;
+  &lt;version&gt;0.8.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
@@ -5796,7 +6009,7 @@ can only be performed during an action phase.
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-11-12 11:12:02 CET
+Last updated 2014-03-24 11:52:35 CET
 </div>
 </div>
 </body>
