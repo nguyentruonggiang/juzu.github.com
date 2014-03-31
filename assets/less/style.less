@@ -99,6 +99,7 @@ body {
 	padding-top: 20px;
 	text-align: center;
 	background: url("@{imageDirectory}/bg-shadow-footer.png") no-repeat center top rgba(0, 0, 0, .1);
+	background-size: 100%;
 	.copy-right {
 		color: #808080;
 	}
@@ -173,19 +174,10 @@ body {
 		.translate(50%, 0);
 		&:after {
 			content: "";
-			border-bottom: 8px solid #fff;
-			border-left: 10px solid rgba(0, 0, 0, 0);
-			border-right: 10px solid rgba(0, 0, 0, 0);
-			position: absolute;
-			bottom: 100%;
-			right: 50%;
-			.translate(50%, 0);
-		}
-		&:before {
-			content: "";
-			border-bottom: 10px solid #ccc;
-			border-left: 11px solid rgba(0, 0, 0, 0);
-			border-right: 11px solid rgba(0, 0, 0, 0);
+			width: 13px;
+			height: 7px;
+			background: url("@{imageDirectory}/background.png") no-repeat -54px -58px transparent;
+			background-size: 186px 330px;
 			position: absolute;
 			bottom: 100%;
 			right: 50%;
@@ -207,15 +199,16 @@ body {
 				}
 				&:after {
 					content: "";
-					border-bottom: 9px solid @linkColor;
-					border-left: 11px solid rgba(0, 0, 0, 0);
-					border-right: 11px solid rgba(0, 0, 0, 0);
+					display: none;
+					width: 14px;
+					height: 7px;
+					background: url("@{imageDirectory}/background.png") no-repeat -74px -58px transparent;
+					background-size: 186px 330px;
 					position: absolute;
 					bottom: 100%;
 					right: 50%;
 					.translate(50%, 0);
-					z-index: 100;
-					display: none;
+					z-index: 1000;
 				}
 				&:hover {
 					&:after {
@@ -318,7 +311,7 @@ body {
 	}
 	.social-box{
 		float: right;
-		width: 286px;
+		width: 271px;
 		.social-list-link {
 			padding: 0;
 			margin: 220px 0 0;
@@ -330,7 +323,7 @@ body {
 				list-style: none;
 				display: inline-block;
 				+ li {
-					margin-left: 5px;
+					margin-left: 8px;
 				}
 			}
 		}
