@@ -140,11 +140,24 @@
 	.navbar-top .navbar-nav > li:hover .dropdown-menu {
 		display: block;
 	}
-
+	.navbar-top .navbar-nav {
+		> li {
+			&.open {
+				.dropdown-menu {
+					display: none;
+				}
+				&:hover {
+					.dropdown-menu {
+						display: block;
+					}
+				}
+			}
+		}
+	}
 }
 @media (min-width: 768px) {
 	// List Screencasts - Equal Height
-	.navbar-top .navbar-nav > li:first-child{margin-right: 50px;}
+	.navbar-top .navbar-nav > li:first-child{margin-right: 30px;}
 	#footer {
 		//margin-top: 100px;
 	}
